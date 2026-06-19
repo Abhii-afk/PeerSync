@@ -41,9 +41,9 @@ export default function Home() {
     <>
       <Navbar />
       <Hero />
-      <section className="pb-24 bg-[#F8FAFC]">
+      <section className="pb-24 bg-slate-50 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-6">
-          <h2 className="text-2xl md:text-3xl font-semibold text-[#1E293B] text-center mb-12">
+          <h2 className="text-2xl md:text-3xl font-semibold text-slate-800 dark:text-slate-100 text-center mb-12">
             Everything you need in one room
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
