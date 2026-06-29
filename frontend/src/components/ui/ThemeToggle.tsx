@@ -1,41 +1,24 @@
-﻿"use client"
+"use client"
 
+import { Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
-import { useEffect, useState } from "react"
-import { Sun, Moon } from "lucide-react"
 
 /**
  * Button that toggles between light and dark theme.
- * Persists choice via next-themes (backed by localStorage under the hood).
+ * The icon pair uses CSS-only visibility so hydration stays stable.
  */
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  if (!mounted) {
-    return (
-      <button
-        type="button"
-        aria-label="Toggle dark mode"
-        className="rounded-md p-2 hover:bg-gray-100 dark:hover:bg-gray-800 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none transition-colors"
-      >
-        <div className="h-5 w-5" />
-      </button>
-    )
-  }
+  const { resolvedTheme, setTheme } = useTheme()
 
   return (
     <button
       type="button"
       aria-label="Toggle dark mode"
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="rounded-md p-2 hover:bg-gray-100 dark:hover:bg-gray-800 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none transition-colors"
+      onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+      className="rounded-md p-2 text-[#94a3b8] hover:bg-[#1f2438] hover:text-[#f1f5f9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7c3aed]/70 transition-colors"
     >
-      {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+      <Sun className="h-5 w-5 dark:hidden" />
+      <Moon className="hidden h-5 w-5 dark:block" />
     </button>
   )
 }
