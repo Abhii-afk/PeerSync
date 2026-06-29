@@ -4,6 +4,7 @@ import { useEffect, useRef, useCallback } from "react"
 import { createPortal } from "react-dom"
 import { cn } from "@/lib/utils"
 import { X } from "lucide-react"
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
 
 interface ModalProps {
   /** Whether the modal is currently visible. */
@@ -23,6 +24,7 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
   const modalRef = useRef<HTMLDivElement>(null)
   const previousActiveElement = useRef<Element | null>(null)
   const titleId = "modal-title"
+  const prefersReducedMotion = useReducedMotion()
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -85,42 +87,51 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
   if (!isOpen) return null
 
   return createPortal(
-    <div
-      className="fixed inset-0 z-[200] flex items-center justify-center"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={titleId}
-    >
+    <AnimatePresence>
       <div
-        className="absolute inset-0 bg-black/50"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-      <div
-        ref={modalRef}
-        className={cn(
-          "relative z-10 mx-4 w-full max-w-lg rounded-xl bg-white p-6 shadow-xl",
-          "dark:bg-gray-800 dark:text-gray-100",
-          "max-h-[85vh] overflow-y-auto",
-        )}
-        onClick={(e) => e.stopPropagation()}
+        className="fixed inset-0 z-[200] flex items-center justify-center"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
       >
-        <div className="flex items-center justify-between mb-4">
-          <h2 id={titleId} className="text-lg font-semibold">
-            {title}
-          </h2>
-          <button
-            type="button"
-            aria-label="Close"
-            onClick={onClose}
-            className="rounded-md p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-        <div>{children}</div>
+        <motion.button
+          type="button"
+          aria-hidden="true"
+          className="absolute inset-0 cursor-default bg-black/60"
+          onClick={onClose}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: prefersReducedMotion ? 0 : 0.18 }}
+        />
+        <motion.div
+          ref={modalRef}
+          initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, scale: 0.95, y: 12 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 12 }}
+          transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
+          className={cn(
+            "relative z-10 mx-4 w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-lg border border-[#2d3150] bg-[#1a1d2e] p-6 text-[#f1f5f9] shadow-[0_4px_24px_rgba(0,0,0,0.4)]",
+          )}
+          onClick={(event) => event.stopPropagation()}
+        >
+          <div className="mb-4 flex items-center justify-between">
+            <h2 id={titleId} className="text-lg font-semibold">
+              {title}
+            </h2>
+            <button
+              type="button"
+              aria-label="Close"
+              onClick={onClose}
+              className="rounded-md p-1 text-[#94a3b8] hover:text-[#f1f5f9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7c3aed]/70"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <div>{children}</div>
+        </motion.div>
       </div>
-    </div>,
+    </AnimatePresence>,
     document.body,
   )
 }
