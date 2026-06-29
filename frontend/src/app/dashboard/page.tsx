@@ -1,22 +1,70 @@
+import { redirect } from "next/navigation"
 import Navbar from "@/components/Navbar"
-import Footer from "@/components/Footer"
+import { DashboardClient } from "@/components/dashboard/DashboardClient"
+import { createSupabaseServerClient } from "@/lib/supabase/server"
+import type { Room, RoomWithMeta, User } from "@/types"
 
-export default function DashboardPage() {
+export const dynamic = "force-dynamic"
+
+async function fetchDashboardData(): Promise<{ user: User | null; rooms: RoomWithMeta[] }> {
+  const supabase = await createSupabaseServerClient()
+  const { data: userData } = await supabase.auth.getUser()
+
+  if (!userData.user) {
+    return { user: null, rooms: [] }
+  }
+
+  const currentUser: User = {
+    id: userData.user.id,
+    name: userData.user.user_metadata?.name ?? userData.user.email ?? "Student",
+    email: userData.user.email ?? "",
+    avatar_url: userData.user.user_metadata?.avatar_url ?? null,
+    created_at: userData.user.created_at,
+  }
+
+  const { data: memberships } = await supabase
+    .from("room_members")
+    .select("room_id")
+    .eq("user_id", currentUser.id)
+
+  const roomIds = (memberships ?? []).map((membership) => membership.room_id)
+
+  if (roomIds.length === 0) {
+    return { user: currentUser, rooms: [] }
+  }
+
+  const { data: roomRows } = await supabase
+    .from("rooms")
+    .select("id, name, description, created_by, created_at")
+    .in("id", roomIds)
+
+  const { data: counts } = await supabase.from("room_members").select("room_id").in("room_id", roomIds)
+
+  const countByRoom = new Map<string, number>()
+  for (const row of counts ?? []) {
+    countByRoom.set(row.room_id, (countByRoom.get(row.room_id) ?? 0) + 1)
+  }
+
+  const rooms = (roomRows ?? []).map((room) => ({
+    ...(room as Room),
+    memberCount: countByRoom.get(room.id) ?? 0,
+    lastActivity: "just now",
+  })) as RoomWithMeta[]
+
+  return { user: currentUser, rooms }
+}
+
+export default async function DashboardPage() {
+  const { user, rooms } = await fetchDashboardData()
+
+  if (!user) {
+    redirect("/auth/login")
+  }
+
   return (
-    <>
+    <div className="min-h-screen">
       <Navbar />
-      <main className="flex-1 bg-slate-50 dark:bg-gray-950 py-24">
-        <div className="mx-auto max-w-3xl px-6">
-          <h1 className="text-2xl md:text-3xl font-semibold text-slate-800 dark:text-slate-100 mb-6">
-            Dashboard
-          </h1>
-          <p className="text-base text-slate-500 dark:text-slate-400 leading-relaxed">
-            Your study rooms will appear here. This feature is coming in Week 2
-            of development once authentication and room creation are complete.
-          </p>
-        </div>
-      </main>
-      <Footer />
-    </>
+      <DashboardClient currentUser={user} rooms={rooms} isLoading={false} />
+    </div>
   )
 }
