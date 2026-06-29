@@ -37,7 +37,7 @@ export function Input({
       {label && (
         <label
           htmlFor={inputId}
-          className="text-sm font-medium text-gray-700 dark:text-gray-300"
+          className="text-sm font-medium text-[#f1f5f9]"
         >
           {label}
         </label>
@@ -52,20 +52,16 @@ export function Input({
         aria-invalid={error ? "true" : undefined}
         aria-describedby={errorId}
         className={cn(
-          "rounded-lg border px-3 py-2 text-sm transition-colors",
-          "bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100",
-          "placeholder:text-gray-400 dark:placeholder:text-gray-500",
-          "focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none",
-          error
-            ? "border-red-500 dark:border-red-400 focus-visible:ring-red-500"
-            : "border-gray-300 dark:border-gray-600",
-          disabled && "opacity-50 cursor-not-allowed bg-gray-50 dark:bg-gray-900",
+          "h-11 rounded-md border bg-[#1a1d2e] px-3 py-2 text-sm text-[#f1f5f9] shadow-[0_4px_24px_rgba(0,0,0,0.18)] transition-colors",
+          "placeholder:text-[#94a3b8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7c3aed]/70",
+          error ? "border-[#ef4444]" : "border-[#2d3150]",
+          disabled && "cursor-not-allowed opacity-50",
           className,
         )}
         {...props}
       />
       {error && (
-        <p id={errorId} className="text-sm text-red-500 dark:text-red-400" role="alert">
+        <p id={errorId} className="text-sm text-[#ef4444]" role="alert">
           {error}
         </p>
       )}
