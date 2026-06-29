@@ -1,65 +1,31 @@
 ﻿"use client"
 
-import { createContext, useContext, useState, useCallback, useRef, type ReactNode } from "react"
+import { toast } from "sonner"
 
-interface Toast {
-  id: string
-  message: string
-  variant: "success" | "error" | "info"
+export type ToastVariant = "default" | "destructive" | "success" | "error" | "info"
+
+interface UseToastResult {
+  showToast: (
+    message: string,
+    options?: { variant?: ToastVariant; description?: string; duration?: number },
+  ) => string
 }
 
-interface ToastContextValue {
-  toasts: Toast[]
-  showToast: (message: string, options?: { variant?: Toast["variant"]; duration?: number }) => string
-  dismissToast: (id: string) => void
-}
+export function useToast(): UseToastResult {
+  return {
+    showToast(message, options) {
+      const variant = options?.variant ?? "default"
 
-const ToastContext = createContext<ToastContextValue | null>(null)
+      const toastId = toast(message, {
+        description: options?.description,
+        duration: options?.duration ?? 3000,
+        className:
+          variant === "destructive" || variant === "error"
+            ? "border border-[#ef4444]/40 bg-[#1a1d2e] text-[#f1f5f9]"
+            : "border border-[#2d3150] bg-[#1a1d2e] text-[#f1f5f9]",
+      })
 
-let toastCounter = 0
-
-export function ToastProvider({ children }: { children: ReactNode }) {
-  const [toasts, setToasts] = useState<Toast[]>([])
-  const timersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
-
-  const dismissToast = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id))
-    const timer = timersRef.current.get(id)
-    if (timer) {
-      clearTimeout(timer)
-      timersRef.current.delete(id)
-    }
-  }, [])
-
-  const showToast = useCallback(
-    (message: string, options?: { variant?: Toast["variant"]; duration?: number }) => {
-      const id = `toast-${++toastCounter}`
-      const variant = options?.variant ?? "info"
-      const duration = options?.duration ?? 3000
-
-      setToasts((prev) => [...prev, { id, message, variant }])
-
-      const timer = setTimeout(() => {
-        dismissToast(id)
-      }, duration)
-      timersRef.current.set(id, timer)
-
-      return id
+      return String(toastId)
     },
-    [dismissToast],
-  )
-
-  return (
-    <ToastContext.Provider value={{ toasts, showToast, dismissToast }}>
-      {children}
-    </ToastContext.Provider>
-  )
-}
-
-export function useToast(): ToastContextValue {
-  const ctx = useContext(ToastContext)
-  if (!ctx) {
-    throw new Error("useToast must be used within a ToastProvider")
   }
-  return ctx
 }
