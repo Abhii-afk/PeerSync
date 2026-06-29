@@ -3,24 +3,20 @@
 import { cn } from "@/lib/utils"
 
 interface LoaderProps {
-  /** Visual style: spinning ring or skeleton block. Defaults to 'spinner'. */
-  variant?: "spinner" | "skeleton"
-  /** Size of the spinner (ignored for skeleton). Defaults to 'md'. */
+  variant?: "page" | "inline" | "skeleton" | "spinner"
   size?: "sm" | "md" | "lg"
-  /** For skeleton variant: additional Tailwind classes (e.g. "h-6 w-48"). */
   className?: string
-  /** Accessible label describing what is loading. Defaults to 'Loading'. */
   label?: string
 }
 
-const spinnerSizes: Record<string, string> = {
+const spinnerSizes: Record<NonNullable<LoaderProps["size"]>, string> = {
   sm: "h-4 w-4 border-2",
-  md: "h-8 w-8 border-[3px]",
-  lg: "h-12 w-12 border-4",
+  md: "h-5 w-5 border-[3px]",
+  lg: "h-8 w-8 border-4",
 }
 
 export function Loader({
-  variant = "spinner",
+  variant = "inline",
   size = "md",
   className,
   label = "Loading",
@@ -30,7 +26,7 @@ export function Loader({
       <div role="status" aria-label={label}>
         <div
           className={cn(
-            "animate-pulse rounded-md bg-gray-200 dark:bg-gray-700",
+              "animate-pulse rounded-md bg-[#1f2438]",
             className,
           )}
         />
@@ -39,11 +35,22 @@ export function Loader({
     )
   }
 
+    if (variant === "page") {
+      return (
+        <div className="flex min-h-[60vh] items-center justify-center" role="status" aria-label={label}>
+          <div className="flex flex-col items-center gap-4">
+            <div className={cn("animate-spin rounded-full border-[#2d3150] border-t-[#7c3aed]", spinnerSizes.lg)} />
+            <p className="text-sm text-[#94a3b8]">{label}</p>
+          </div>
+        </div>
+      )
+    }
+
   return (
     <div role="status" aria-label={label}>
       <div
         className={cn(
-          "animate-spin rounded-full border-gray-300 border-t-blue-600 dark:border-gray-600 dark:border-t-blue-400",
+            "animate-spin rounded-full border-[#2d3150] border-t-[#7c3aed]",
           spinnerSizes[size],
           className,
         )}
